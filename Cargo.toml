@@ -2,5 +2,7 @@
 name = "aisstant"
 version = "0.1.0"
 edition = "2021"
-
-[dependencies]
+homepage = "https://github.com/daraber/aisstant"
+authors = ["daraber"]
+description = "Generate CLI commands from natural language"]
+categories = ["command-line-utilities"]
