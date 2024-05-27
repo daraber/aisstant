@@ -6,14 +6,8 @@ use std::process::Command;
 use crate::generators::{CommandGenerator, OpenAICommandGenerator};
 
 
-fn execute_command(command: &str) -> io::Result<()> {
-    let mut parts = command.split_whitespace();
-    let command = parts.next().unwrap();
-    let args = parts;
-
-    Command::new(command).args(args).spawn()?.wait()?;
-
-    Ok(())
+fn collect_description() -> String {
+    args().skip(1).collect::<Vec<String>>().join(" ")
 }
 
 fn generate_command(description: &str) -> Result<String, io::Error> {
@@ -28,8 +22,14 @@ fn generate_command(description: &str) -> Result<String, io::Error> {
     generator.generate_command(description)
 }
 
-fn collect_description() -> String {
-    args().skip(1).collect::<Vec<String>>().join(" ")
+fn execute_command(command: &str) -> io::Result<()> {
+    let mut parts = command.split_whitespace();
+    let command = parts.next().unwrap();
+    let args = parts;
+
+    Command::new(command).args(args).spawn()?.wait()?;
+
+    Ok(())
 }
 
 fn main() {
