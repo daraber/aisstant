@@ -16,31 +16,33 @@ fn execute_command(command: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn main() {
-    let description = args().skip(1).collect::<Vec<String>>().join(" ");
-
+fn generate_command(description: &str) -> Result<String, io::Error> {
     let api_key = env::var("OPENAI_API_KEY");
+
     if api_key.is_err() {
-        eprintln!("environment variable OPENAI_API_KEY is not set");
-        return;
+        eprintln!("OPENAI_API_KEY: {}", api_key.unwrap_err());
+        return Err(io::Error::new(io::ErrorKind::NotFound, "OPENAI_API_KEY is not set"));
     }
 
     let generator = OpenAICommandGenerator::new(api_key.unwrap());
+    generator.generate_command(description)
+}
 
-    match generator.generate_command(&description) {
-        Ok(description) => {
-            let command = generator.generate_command(&description);
+fn collect_description() -> String {
+    args().skip(1).collect::<Vec<String>>().join(" ")
+}
 
-            match command {
-                Ok(command) => {
-                    println!("Generated command: {}", command);
-                    execute_command(&command).unwrap();
-                }
+fn main() {
+    let description = collect_description();
+    let command = generate_command(&description);
 
-                Err(e) => eprintln!("Error: {}", e),
+    match command {
+        Ok(command) => {
+            match execute_command(&command) {
+                Ok(_) => println!("Command executed successfully"),
+                Err(e) => eprintln!("Error executing command: {}", e),
             }
         }
-
-        Err(e) => eprintln!("Error: {}", e),
+        Err(e) => eprintln!("Error generating command: {}", e),
     }
 }
