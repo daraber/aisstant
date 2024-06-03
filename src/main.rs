@@ -16,7 +16,7 @@ fn execute_command(command: &str) -> io::Result<()> {
     }
 
     let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt(format!("Command: {}", command))
+        .with_prompt(command)
         .default(0)
         .items(&["Execute", "Cancel"])
         .interact()
