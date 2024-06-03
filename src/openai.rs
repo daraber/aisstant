@@ -24,16 +24,16 @@ fn get_api_key() -> String {
     return match env::var(OPENAI_ENV_KEY) {
         Ok(key) => key,
         Err(e) => panic!("{}: {}", OPENAI_ENV_KEY, e),
-    }
+    };
 }
 
-pub(crate) async fn generate_command(description: &str) -> Result<String, io::Error> {
-    let api_key = get_api_key();
 
+pub(crate) async fn generate_command(description: &str) -> Result<String, io::Error> {
     if description.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "Description is empty"));
     }
 
+    let api_key = get_api_key();
     let prompt = get_prompt(description);
     let client = Client::new(api_key);
     let parameters = ChatCompletionParameters {
@@ -49,16 +49,15 @@ pub(crate) async fn generate_command(description: &str) -> Result<String, io::Er
         ..Default::default()
     };
 
-    let result = client.chat().create(parameters).await.unwrap();
-    if result.choices.is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "OpenAI response is empty"));
-    }
+    return client.chat().create(parameters).await
+        .map(|completion| {
+            let choice = completion.choices.first().unwrap();
+            let content = match &choice.message.content {
+                ChatMessageContent::Text(text) => text,
+                _ => "",
+            };
 
-    let choice = result.choices.first().unwrap();
-    let content = match &choice.message.content {
-        ChatMessageContent::Text(text) => text,
-        _ => "",
-    };
-
-    Ok(content.to_string())
+            Ok(content.to_string())
+        })
+        .unwrap_or_else(|e| Err(io::Error::new(io::ErrorKind::Other, e.to_string())));
 }
