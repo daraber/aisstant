@@ -8,12 +8,9 @@ use openai_dive::v1::resources::chat::{ChatCompletionParameters, ChatMessage, Ch
 pub const OPENAI_ENV_KEY: &str = "OPENAI_API_KEY";
 
 pub const PROMPT: &str = r"You generate modern shell commands (OS: {{OS}}) based on descriptions.
-You always respond with 1 line only, being the command.
+You only provide the command and nothing else. You do not begin with bash or similar.
 If needed use pipes, redirections, intermediate files and several commands.
-
-Generate a command to '{{DESCRIPTION}}'.
-";
-
+Generate a command to '{{DESCRIPTION}}'.";
 
 fn get_prompt(description: &str) -> String {
     let os = env::var("OS").unwrap_or_else(|_| "unknown".to_string());
@@ -24,13 +21,10 @@ fn get_prompt(description: &str) -> String {
 }
 
 fn get_api_key() -> String {
-    let api_key = env::var(OPENAI_ENV_KEY);
-
-    if api_key.is_err() {
-        panic!("{}: {}", OPENAI_ENV_KEY, api_key.err().unwrap());
+    return match env::var(OPENAI_ENV_KEY) {
+        Ok(key) => key,
+        Err(e) => panic!("{}: {}", OPENAI_ENV_KEY, e),
     }
-
-    api_key.unwrap()
 }
 
 pub(crate) async fn generate_command(description: &str) -> Result<String, io::Error> {
