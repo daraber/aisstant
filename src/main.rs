@@ -1,6 +1,8 @@
 use std::env::args;
 use std::io;
 use std::process::Command;
+use dialoguer::Select;
+use dialoguer::theme::ColorfulTheme;
 
 mod openai;
 
@@ -13,7 +15,17 @@ fn execute_command(command: &str) -> io::Result<()> {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "Generated command is empty"));
     }
 
-    println!("Executing command: {}", command);
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt(format!("Generated command: {}", command))
+        .default(0)
+        .items(&["Execute", "Cancel"])
+        .interact()
+        .unwrap();
+
+    if selection == 1 {
+        return Ok(());
+    }
+
     let mut parts = command.split_whitespace();
     let command = parts.next().unwrap();
     let args = parts;
