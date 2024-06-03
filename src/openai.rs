@@ -54,7 +54,7 @@ pub(crate) async fn generate_command(description: &str) -> Result<String, io::Er
             let choice = completion.choices.first().unwrap();
             let content = match &choice.message.content {
                 ChatMessageContent::Text(text) => text,
-                _ => "",
+                content => panic!("Unexpected completion content; expected text, got {:?}", content),
             };
 
             Ok(content.to_string())
