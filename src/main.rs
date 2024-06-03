@@ -42,7 +42,7 @@ async fn main() {
 
     match command {
         Ok(command) => {
-            if let Err (e) = execute_command(&command) {
+            if let Err(e) = execute_command(&command) {
                 eprintln!("Error executing command: {}", e);
             }
         }
