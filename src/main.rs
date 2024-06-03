@@ -1,28 +1,19 @@
-mod generators;
-
 use std::env::args;
-use std::{env, io};
+use std::io;
 use std::process::Command;
-use crate::generators::{CommandGenerator, OpenAICommandGenerator};
 
+mod openai;
 
 fn collect_description() -> String {
     args().skip(1).collect::<Vec<String>>().join(" ")
 }
 
-fn generate_command(description: &str) -> Result<String, io::Error> {
-    let api_key = env::var("OPENAI_API_KEY");
-
-    if api_key.is_err() {
-        eprintln!("OPENAI_API_KEY: {}", api_key.unwrap_err());
-        return Err(io::Error::new(io::ErrorKind::NotFound, "OPENAI_API_KEY is not set"));
+fn execute_command(command: &str) -> io::Result<()> {
+    if command.is_empty() {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "Generated command is empty"));
     }
 
-    let generator = OpenAICommandGenerator::new(api_key.unwrap());
-    generator.generate_command(description)
-}
-
-fn execute_command(command: &str) -> io::Result<()> {
+    println!("Executing command: {}", command);
     let mut parts = command.split_whitespace();
     let command = parts.next().unwrap();
     let args = parts;
@@ -32,9 +23,10 @@ fn execute_command(command: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let description = collect_description();
-    let command = generate_command(&description);
+    let command = openai::generate_command(&description).await;
 
     match command {
         Ok(command) => {
