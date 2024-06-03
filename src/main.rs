@@ -42,9 +42,8 @@ async fn main() {
 
     match command {
         Ok(command) => {
-            match execute_command(&command) {
-                Ok(_) => println!("Command executed successfully"),
-                Err(e) => eprintln!("Error executing command: {}", e),
+            if let Err (e) = execute_command(&command) {
+                eprintln!("Error executing command: {}", e);
             }
         }
         Err(e) => eprintln!("Error generating command: {}", e),
